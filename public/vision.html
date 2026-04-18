@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartFarm AI 3.0 | Crop Disease Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="min-h-screen relative bg-slate-50">
+
+    <!-- TOP NAVIGATION -->
+    <nav class="no-print sticky top-0 z-50 glass-card border-b border-slate-200/60 px-6 py-4 bg-white/80 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/30">
+                    <span class="text-white text-xl">🌿</span>
+                </div>
+                <a href="/" class="block">
+                    <h1 class="nav-brand-title text-slate-900 leading-none" data-i18n="nav_brand">SmartFarm AI</h1>
+                    <p class="section-label text-slate-400 mt-0.5" data-i18n="vision_title">AI Crop Disease Detection</p>
+                </a>
+            </div>
+            
+            <div class="flex items-center gap-3 md:gap-4">
+                <button id="langToggleBtn" onclick="window.toggleAppLang()" class="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all shadow-sm">தமிழ்</button>
+                <a href="/" class="px-4 py-2 text-xs font-bold bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors" data-i18n="sim_back">Back to Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HEADER / TAGLINE -->
+    <header class="bg-slate-900 text-white pt-16 pb-20 px-6 relative overflow-hidden bg-grid-pattern">
+        <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-transparent pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto relative z-10 text-center animate-appear">
+            <h2 class="text-4xl md:text-5xl font-black mb-4 leading-tight tracking-tighter text-white" data-i18n="vision_title">AI Crop Disease Detection</h2>
+            <p class="text-slate-400 font-medium leading-relaxed max-w-2xl mx-auto" data-i18n="vision_subtitle">Upload a picture of a leaf to instantly identify diseases and treatments.</p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 -mt-10 mb-24 relative z-20">
+        
+        <div class="max-w-2xl mx-auto bg-white rounded-[2.5rem] shadow-xl border border-slate-200/60 p-8 md:p-10 animate-slide-up">
+            
+            <!-- SCANNER TOGGLE TABS -->
+            <div class="flex gap-2 mb-6 p-1.5 bg-slate-100 rounded-2xl w-full max-w-sm mx-auto shadow-inner border border-slate-200">
+                <button id="tabUpload" onclick="setMode('upload')" class="flex-1 py-3 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm bg-white text-emerald-600 border border-slate-200">Upload Image</button>
+                <button id="tabCamera" onclick="setMode('camera')" class="flex-1 py-3 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-200/50">Live Camera</button>
+            </div>
+
+            <!-- UPLOAD ZONE -->
+            <div id="uploadZone" class="border-2 border-dashed border-emerald-300 bg-emerald-50/50 rounded-3xl p-10 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-emerald-50 transition-colors group">
+                <div class="w-20 h-20 bg-white rounded-full shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <span class="text-4xl">📸</span>
+                </div>
+                <h3 class="font-black text-emerald-900 text-lg mb-2" data-i18n="vision_upload">Upload Leaf Image</h3>
+                <p class="text-xs text-emerald-600/70 font-medium font-mono">Tap here or drag & drop</p>
+                <input type="file" id="imageInput" class="hidden" accept="image/*" capture="environment" onchange="previewImage(event)">
+            </div>
+
+            <!-- LIVE CAMERA ZONE -->
+            <div id="cameraZone" class="hidden relative rounded-3xl overflow-hidden bg-black aspect-[4/3] sm:aspect-video flex flex-col items-center justify-center shadow-xl border border-slate-800">
+                <video id="videoElement" autoplay playsinline class="w-full h-full object-cover"></video>
+                
+                <button onclick="flipCamera()" class="absolute top-4 right-4 w-10 h-10 bg-black/40 text-white rounded-full flex items-center justify-center backdrop-blur hover:bg-black/60 transition-all shadow z-20" title="Switch Camera">
+                    <svg id="flipIcon" class="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+
+                <div class="absolute top-4 left-4 z-20">
+                    <select id="cameraSelector" onchange="switchCameraDevice(this.value)" class="bg-black/40 text-white border border-white/20 text-xs font-bold rounded-xl px-3 py-2 backdrop-blur hover:bg-black/60 outline-none transition-all max-w-[150px] truncate hidden cursor-pointer">
+                    </select>
+                </div>
+
+                <div class="absolute bottom-6 left-0 right-0 flex justify-center z-10 gap-4">
+                    <button onclick="takeSnapshot()" class="w-16 h-16 bg-white/20 backdrop-blur border-4 border-white rounded-full hover:bg-white/40 hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.4)] active:scale-95 flex items-center justify-center">
+                        <div class="w-12 h-12 bg-white rounded-full"></div>
+                    </button>
+                </div>
+                <div id="cameraLoading" class="absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center text-white hidden z-30">
+                    <div class="loader mb-4 border-emerald-500"></div>
+                    <p class="text-xs uppercase tracking-widest font-bold text-emerald-400">Initializing Camera...</p>
+                </div>
+            </div>
+
+            <!-- PREVIEW AREA -->
+            <div id="previewArea" class="hidden relative rounded-3xl overflow-hidden shadow-inner border border-slate-200">
+                <img id="imagePreview" src="" alt="Crop Preview" class="w-full max-h-96 object-contain bg-slate-900">
+                <button onclick="resetUpload()" class="absolute top-4 right-4 w-10 h-10 bg-black/60 text-white rounded-full flex items-center justify-center backdrop-blur hover:bg-rose-600 transition-colors cursor-pointer z-10 border border-white/20">✕</button>
+            </div>
+            
+            <canvas id="snapshotCanvas" class="hidden"></canvas>
+
+            <button id="analyzeBtn" onclick="analyzeCrop()" class="w-full mt-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hidden" data-i18n="vision_analyze">
+                Analyze Crop
+            </button>
+
+            <!-- RESULTS (Hidden initially) -->
+            <div id="resultsArea" class="hidden mt-8 space-y-4 animate-slide-up">
+                <div class="bg-slate-900 rounded-3xl p-6 text-white border border-slate-800 shadow-xl relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                        <div>
+                            <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1" data-i18n="vision_disease">Disease Detected</p>
+                            <h3 id="resDisease" class="text-xl font-black text-white">Leaf Spot</h3>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1" data-i18n="vision_conf">Confidence Level</p>
+                            <h3 id="resConfidence" class="text-xl font-black text-emerald-300">Evaluating...</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-rose-50 rounded-3xl p-6 border border-rose-100">
+                    <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-2" data-i18n="vision_cause">Probable Cause</p>
+                    <p id="resCause" class="text-sm font-bold text-rose-900">Fungal infection rapidly spreading due to high moisture levels.</p>
+                </div>
+
+                <div class="bg-blue-50 rounded-3xl p-6 border border-blue-100">
+                    <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2" data-i18n="vision_treatment">Treatment Steps</p>
+                    <p id="resTreatment" class="text-sm font-bold text-blue-900">Apply broad-spectrum fungicide (e.g., Copper Oxychloride) immediately. Ensure proper spacing between plants to improve air circulation.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script type="module" src="/js/vision.js"></script>
+</body>
+</html>

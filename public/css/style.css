@@ -1,0 +1,322 @@
+/* ===================================================
+   SMARTFARM AI — RESPONSIVE TYPOGRAPHY SYSTEM
+   Fluid scaling: 320px (mobile) → 1440px (laptop/desktop)
+   Uses CSS clamp() for smooth, breakpoint-free scaling.
+=================================================== */
+
+:root {
+    /* Brand Colours */
+    --emerald-primary: #10b981;
+    --emerald-light:   #34d399;
+    --emerald-dark:    #059669;
+    --slate-deep:      #0f172a;
+    --slate-bg:        #f8fafc;
+
+    /* Fluid Type Scale (mobile → desktop) */
+    --text-xs:    clamp(0.65rem,  1.5vw, 0.75rem);   /* 10px → 12px  */
+    --text-sm:    clamp(0.75rem,  1.8vw, 0.875rem);  /* 12px → 14px  */
+    --text-base:  clamp(0.875rem, 2vw,   1rem);       /* 14px → 16px  */
+    --text-lg:    clamp(1rem,     2.5vw, 1.125rem);   /* 16px → 18px  */
+    --text-xl:    clamp(1.125rem, 3vw,   1.25rem);    /* 18px → 20px  */
+    --text-2xl:   clamp(1.25rem,  3.5vw, 1.5rem);     /* 20px → 24px  */
+    --text-3xl:   clamp(1.5rem,   4vw,   1.875rem);   /* 24px → 30px  */
+    --text-4xl:   clamp(1.875rem, 5vw,   2.25rem);    /* 30px → 36px  */
+    --text-5xl:   clamp(2rem,     6vw,   3rem);        /* 32px → 48px  */
+    --text-hero:  clamp(2.25rem,  7vw,   4rem);        /* 36px → 64px  */
+
+    /* Fluid Spacing Scale */
+    --space-xs:   clamp(0.25rem, 0.5vw,  0.5rem);
+    --space-sm:   clamp(0.5rem,  1vw,    1rem);
+    --space-md:   clamp(1rem,    2vw,    1.5rem);
+    --space-lg:   clamp(1.5rem,  3vw,    2.5rem);
+    --space-xl:   clamp(2rem,    4vw,    4rem);
+}
+
+/* Global Base Typography */
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--slate-bg);
+    color: #1e293b;
+    font-size: var(--text-base);
+    line-height: 1.6;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Semantic Heading Hierarchy */
+h1 { font-size: var(--text-hero);  font-weight: 900; line-height: 1.1; letter-spacing: -0.03em; }
+h2 { font-size: var(--text-5xl);   font-weight: 900; line-height: 1.15; letter-spacing: -0.025em; }
+h3 { font-size: var(--text-3xl);   font-weight: 800; line-height: 1.2;  letter-spacing: -0.02em; }
+h4 { font-size: var(--text-xl);    font-weight: 700; line-height: 1.3;  letter-spacing: -0.01em; }
+h5 { font-size: var(--text-lg);    font-weight: 700; line-height: 1.4; }
+h6 { font-size: var(--text-base);  font-weight: 700; line-height: 1.5; }
+p  { font-size: var(--text-base);  line-height: 1.7; }
+
+/* Labels & Tags */
+label, .label-text {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Navigation Brand */
+.nav-brand-title {
+    font-size: var(--text-xl);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+}
+
+/* Card stat values */
+.stat-value {
+    font-size: var(--text-3xl);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+/* Hero section override */
+.hero-heading {
+    font-size: var(--text-hero);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+}
+
+/* Section sub-labels (uppercase trackers) */
+.section-label {
+    font-size: var(--text-xs);
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+/* Responsive input text */
+input, select, textarea {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: var(--text-sm);
+    font-weight: 600;
+}
+
+/* Button responsive text */
+button {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: var(--text-sm);
+}
+
+/* Mobile-first layout helpers */
+@media (max-width: 640px) {
+    /* reduce card padding on small screens */
+    .glass-card, .glass-dark {
+        border-radius: 1.5rem;
+    }
+
+    /* Compact nav on mobile */
+    nav {
+        padding: 0.75rem 1rem;
+    }
+
+    /* Stack hero tighter */
+    header {
+        padding-top: 3.5rem;
+        padding-bottom: 5rem;
+    }
+
+    /* Tighten table-style grids */
+    .grid-cols-12 {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
+
+
+/* 3D Glassmorphism Utilities */
+.glass-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.85));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 2px solid rgba(255, 255, 255, 1);
+    border-left: 2px solid rgba(255, 255, 255, 0.8);
+    border-right: 1px solid rgba(148, 163, 184, 0.3);
+    border-bottom: 6px solid rgba(148, 163, 184, 0.8);
+    box-shadow: 
+        inset 0 6px 10px rgba(255,255,255,1), 
+        0 16px 0 #94a3b8, 
+        0 25px 35px -5px rgba(0, 0, 0, 0.25);
+    border-radius: 2rem;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.glass-dark {
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    border-left: 2px solid rgba(255, 255, 255, 0.08);
+    border-right: 1px solid rgba(0, 0, 0, 0.6);
+    border-bottom: 8px solid #000000;
+    box-shadow: 
+        inset 0 4px 20px rgba(255,255,255,0.05), 
+        0 16px 0 #000000,
+        0 30px 40px rgba(0, 0, 0, 0.6);
+    border-radius: 2.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 3D Button Dynamics */
+button {
+    transform-style: preserve-3d;
+    transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    box-shadow: 
+        inset 0 2px 4px rgba(255,255,255,0.4),
+        0 8px 0 var(--emerald-dark), 
+        0 15px 25px rgba(16,185,129,0.4) !important;
+    border-top: 2px solid rgba(255,255,255,0.6) !important;
+    border-bottom: 2px solid var(--emerald-dark) !important;
+    transform: translateY(0px) !important;
+}
+
+button:active {
+    transform: translateY(8px) !important;
+    box-shadow: 
+        inset 0 2px 8px rgba(0,0,0,0.2),
+        0 0px 0 var(--emerald-dark), 
+        0 2px 5px rgba(16,185,129,0.2) !important;
+    border-top-color: transparent !important;
+}
+
+/* Custom Inputs */
+.input-focus:focus {
+    border-color: var(--emerald-primary);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: var(--emerald-primary);
+    cursor: pointer;
+    margin-top: -8px;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+    transition: transform 0.1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+    background: #e2e8f0;
+    border-radius: 2px;
+}
+
+/* Scrollbar Hide */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Animations */
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDownFade {
+    from { opacity: 0; transform: translateY(-40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toastSlideUp {
+    from { opacity: 1; transform: translate(-50%, 0); }
+    to { opacity: 0; transform: translate(-50%, -40px); }
+}
+
+@keyframes pulse-soft {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.animate-appear { animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-up { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-down { animation: slideDownFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-toast-up { animation: toastSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-pulse-soft { animation: pulse-soft 3s infinite ease-in-out; }
+
+/* Hover Effects */
+.crop-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.crop-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 25px 30px -10px rgba(0, 0, 0, 0.08);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.hover-glow:hover {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+/* Grid Background */
+.bg-grid-pattern {
+    background-size: 40px 40px;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+
+/* Print Styles */
+@media print {
+    .no-print { display: none !important; }
+    .print-only { display: block !important; }
+    body { background: white; color: black; }
+    .modal-container { position: static !important; width: 100% !important; border: none !important; box-shadow: none !important; }
+    .glass-card, .glass-dark { background: white !important; border: 1px solid #ccc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .bg-slate-900 { background: #f1f5f9 !important; color: #0f172a !important; }
+    .text-white { color: #0f172a !important; }
+}
+
+/* Loading Spinner */
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #e2e8f0;
+    border-bottom-color: var(--emerald-primary);
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===================================================
+   DARK MATRIX MODE (Global Inversion + Aesthetic Tuning)
+=================================================== */
+html.dark-matrix {
+    filter: invert(0.92) hue-rotate(180deg);
+    background-color: #f8fafc;
+}
+
+html.dark-matrix img,
+html.dark-matrix canvas,
+html.dark-matrix video {
+    filter: invert(1) hue-rotate(180deg); 
+}

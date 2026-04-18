@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "username": "karthik",
+    "password": "password123",
+    "name": "Karthik"
+  },
+  {
+    "id": 2,
+    "username": "admin",
+    "password": "smartfarm",
+    "name": "System Admin"
+  },
+  {
+    "id": 3,
+    "username": "karthikofficial4584@gmail.com",
+    "password": "KARTHIK12345",
+    "name": "karthik.M"
+  },
+  {
+    "id": 4,
+    "username": "karthik2@gmail.com",
+    "password": "KARTHIK12345",
+    "name": "karthik.M"
+  },
+  {
+    "id": 5,
+    "username": "tester",
+    "password": "tester123",
+    "name": "Tester"
+  },
+  {
+    "id": 6,
+    "username": "michaelgautham18@gmail.com",
+    "password": "michaelgautham18",
+    "name": "michael Gautham.M"
+  }
+]

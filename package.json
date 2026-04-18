@@ -1,0 +1,18 @@
+{
+  "name": "smartfarm-ai",
+  "version": "17.3.0",
+  "description": "SmartFarm AI - Integrated Tamil Nadu farming intelligence platform",
+  "main": "server/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node server/index.js",
+    "seed": "node server/seed.js",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.101.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.0"
+  }
+}

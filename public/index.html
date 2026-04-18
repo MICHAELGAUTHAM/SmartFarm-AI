@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartFarm AI | TN Core V17.4</title>
+    <!-- PWA Requirements -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#10b981">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="apple-touch-icon" href="/icon.svg">
+    <!-- Tailwind via CDN for rapid styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- html2pdf for downloading PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Chart.js for Mathematical Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <!-- Auth Guard: Quick check to prevent flashing -->
+    <script>
+        if (!localStorage.getItem('sf_token') && window.location.pathname !== '/login.html') {
+            window.location.href = '/login.html';
+        }
+    </script>
+</head>
+<body class="min-h-screen relative">
+
+    <!-- TOP NAVIGATION -->
+    <nav class="no-print sticky top-0 z-50 glass-card border-b border-slate-200/60 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-600/30">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="nav-brand-title text-slate-900 leading-none">SmartFarm <span class="text-emerald-600">AI</span></h1>
+                    <p class="section-label text-slate-400 mt-0.5" data-i18n="nav_subtitle">Tamil Nadu Core V17.4</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 md:gap-4">
+                <!-- Theme Toggle -->
+                <button id="themeToggleBtn" onclick="window.toggleGlobalDarkMode()" class="min-w-[40px] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest bg-slate-800 border border-slate-700 text-slate-300 rounded-xl hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all shadow-sm">🌑 Matrix Dark</button>
+
+                <!-- Language Toggle -->
+                <button id="langToggleBtn" onclick="window.toggleAppLang()" class="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all shadow-sm">தமிழ்</button>
+
+                <!-- User Profile -->
+                <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl px-3 py-1.5 shadow-inner">
+                    <div class="w-8 h-8 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-black text-sm" id="userInitial">K</div>
+                    <div class="hidden md:block">
+                        <p class="text-xs font-bold text-slate-800 leading-tight" id="userNameDisplay">Karthik</p>
+                        <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest" data-i18n="nav_authorized">Authorized</p>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="p-2 border border-slate-200 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="no-print bg-slate-900 text-white pt-20 pb-32 px-6 relative overflow-hidden bg-grid-pattern">
+        <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-transparent pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="max-w-3xl animate-appear">
+                <h2 class="hero-heading font-black mb-6 leading-tight tracking-tighter text-white" data-i18n="hero_heading">Harvesting <br><span class="text-emerald-400">Intelligence.</span></h2>
+                <p class="text-slate-400 font-medium leading-relaxed mb-8 max-w-2xl" style="font-size: var(--text-lg);" data-i18n="hero_subtext">The integrated intelligence platform for the Tamil Nadu farming community. From precision soil analysis to global export procedures.</p>
+                <div class="flex items-center gap-4">
+                    <div class="px-4 py-2 bg-white/10 rounded-xl border border-white/20 flex items-center gap-2 backdrop-blur-md">
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-emerald-100" data-i18n="hero_badge">AI Database Connected</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 -mt-16 no-print mb-24 relative z-20">
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            
+            <!-- SIDEBAR CONTROL PANEL -->
+            <aside class="xl:col-span-4 space-y-6">
+                <!-- Primary Controls -->
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200/60 p-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[100%] z-0"></div>
+                    
+                    <div class="flex items-center gap-3 mb-8 relative z-10 border-b border-slate-100 pb-4">
+                        <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <h3 class="font-black text-slate-900 text-sm uppercase tracking-widest" data-i18n="sidebar_title">Region & Parameters</h3>
+                    </div>
+                    
+                    <div class="space-y-6 relative z-10">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2 tracking-widest" data-i18n="label_district">District (மாவட்டம்)</label>
+                            <div class="relative">
+                                <select id="districtSelect" class="w-full px-5 py-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl font-bold text-slate-800 text-sm outline-none transition-colors input-focus cursor-pointer appearance-none shadow-sm"></select>
+                                <svg class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-widest" data-i18n="label_soil">Primary Soil Type</label>
+                            <select id="soilTypeSelect" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-800 text-sm outline-none transition-colors input-focus shadow-sm">
+                                <option value="Red">Red Soil (செம்மண்)</option>
+                                <option value="Black">Black Soil (கரிசல் மண்)</option>
+                                <option value="Alluvial">Alluvial (வண்டல் மண்)</option>
+                                <option value="Laterite">Laterite (சரளை மண்)</option>
+                                <option value="Sandy">Sandy (மணல் மண்)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest" data-i18n="label_timeline">Target Timeline</label>
+                                <span id="durationVal" class="text-xs font-black text-emerald-600">365 Days — 12 months</span>
+                            </div>
+                            <input
+                                type="range"
+                                id="maxDurationInput"
+                                min="30" max="365" value="365"
+                                class="w-full accent-emerald-600"
+                                oninput="
+                                    const d = parseInt(this.value);
+                                    const m = Math.round(d / 30.5 * 10) / 10;
+                                    document.getElementById('durationVal').innerText = d + ' Days — ' + (m >= 1 ? Math.floor(m) + (Math.floor(m) === 1 ? ' month' : ' months') : 'less than 1 month');
+                                "
+                            >
+                            <div class="flex justify-between text-[9px] font-bold text-slate-300 mt-1 px-0.5">
+                                <span>30d</span><span>3m</span><span>6m</span><span>9m</span><span>1 Year</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest" data-i18n="label_quality">Soil Quality Index</label>
+                                <span id="soilVal" class="text-xs font-black text-blue-600">8 / 10</span>
+                            </div>
+                            <input
+                                type="range"
+                                id="soilQuality"
+                                min="1" max="10" value="8" step="0.5"
+                                class="w-full accent-blue-600"
+                                oninput="
+                                    const v = parseFloat(this.value);
+                                    const label = v <= 2 ? 'Poor' : v <= 4 ? 'Below Average' : v <= 6 ? 'Average' : v <= 8 ? 'Good' : 'Excellent';
+                                    document.getElementById('soilVal').innerText = v + ' / 10 — ' + label;
+                                "
+                            >
+                            <div class="flex justify-between text-[9px] font-bold text-slate-300 mt-1 px-0.5">
+                                <span>Poor</span><span>Avg</span><span>Good</span><span>Best</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-widest" data-i18n="label_planting">Planting Window</label>
+                            <input type="date" id="plantingDate" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-800 text-sm outline-none input-focus shadow-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Climate Dashboard Widget -->
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200/60 p-8 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-[100%] z-0"></div>
+                    <h3 class="font-black text-slate-900 text-sm uppercase tracking-widest mb-6 relative z-10 flex items-center gap-2">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        Climate Analytics
+                    </h3>
+                    <div class="flex items-center gap-5 relative z-10">
+                        <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl group-hover:bg-blue-600 group-hover:text-white transition-all shadow-inner">🌦️</div>
+                        <div>
+                            <h4 id="seasonLabel" class="text-xs font-black text-slate-900 uppercase">Kharif Season</h4>
+                            <div class="flex items-baseline gap-2">
+                                <span id="tempDisplay" class="text-2xl font-black text-slate-900">28°C</span>
+                                <span id="rainDisplay" class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">120mm Rain</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl group">
+                    <div class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                        <svg class="w-20 h-20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3L4 9v12h16V9l-8-6zm0 2.2L18.4 10H5.6L12 5.2zM6 19v-7h2v7H6zm4 0v-7h2v7h-2zm4 0v-7h2v7h-2zm4 0v-7h2v7h-2z"/></svg>
+                    </div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-indigo-300" data-i18n="card_loading">Local Market Pulse</p>
+                    <p id="marketDistrictLabel" class="text-[10px] font-bold text-slate-500 mt-1">Fetching region...</p>
+                    <h4 class="text-2xl font-black mb-4 mt-2">Mandi Alerts</h4>
+                    <button onclick="window.location.href='/pulse.html'" class="w-full py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl text-xs font-black uppercase tracking-widest transition-all backdrop-blur-sm" data-i18n="card_open_pulse">Open Pulse Engine</button>
+                    <div class="mt-6 flex items-center gap-3">
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-ping"></span>
+                        <span class="text-[9px] font-bold uppercase tracking-widest text-indigo-200">Live Data Sync Active</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT AREA -->
+            <div class="xl:col-span-8 flex flex-col gap-6">
+                <!-- Quick Access Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 no-print">
+                    <div onclick="showSubsidyDetails()" class="bg-white p-5 lg:p-6 rounded-[2rem] shadow-sm hover:shadow-xl border border-slate-200/80 hover:border-emerald-400 transform hover:-translate-y-1 transition-all cursor-pointer group flex flex-col items-center text-center">
+                        <div class="w-14 h-14 bg-emerald-50 rounded-[1.25rem] flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors mb-4 shadow-sm group-hover:shadow-emerald-500/30">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <h4 class="font-black text-slate-900 text-[11px] lg:text-xs uppercase tracking-widest" data-i18n="card_subsidy">Subsidies</h4>
+                        <p class="text-[9px] lg:text-[10px] font-bold text-slate-400 mt-2" data-i18n="card_active_govt">Active Govt Schemes</p>
+                    </div>
+
+                    <div onclick="showSoilTestingDetails()" class="bg-white p-5 lg:p-6 rounded-[2rem] shadow-sm hover:shadow-xl border border-slate-200/80 hover:border-blue-400 transform hover:-translate-y-1 transition-all cursor-pointer group flex flex-col items-center text-center">
+                        <div class="w-14 h-14 bg-blue-50 rounded-[1.25rem] flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors mb-4 shadow-sm group-hover:shadow-blue-500/30">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.823.362 2.25 2.25 0 00-1.022.547"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <h4 class="font-black text-slate-900 text-[11px] lg:text-xs uppercase tracking-widest" data-i18n="card_soil_labs">Soil Hubs</h4>
+                        <p class="text-[9px] lg:text-[10px] font-bold text-slate-400 mt-2" data-i18n="card_soil_labs_sub">Testing Directories</p>
+                    </div>
+
+                    <div onclick="showWeatherAdvisory()" class="bg-white p-5 lg:p-6 rounded-[2rem] shadow-sm hover:shadow-xl border border-slate-200/80 hover:border-indigo-400 transform hover:-translate-y-1 transition-all cursor-pointer group flex flex-col items-center text-center">
+                        <div class="w-14 h-14 bg-indigo-50 rounded-[1.25rem] flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors mb-4 shadow-sm group-hover:shadow-indigo-500/30">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                        </div>
+                        <h4 class="font-black text-slate-900 text-[11px] lg:text-xs uppercase tracking-widest" data-i18n="card_weather">Weather</h4>
+                        <p class="text-[9px] lg:text-[10px] font-bold text-slate-400 mt-2" data-i18n="card_weather_sub">AI Risk Advisory</p>
+                    </div>
+
+                    <div onclick="showExportGuide()" class="bg-white p-5 lg:p-6 rounded-[2rem] shadow-sm hover:shadow-xl border border-slate-200/80 hover:border-rose-400 transform hover:-translate-y-1 transition-all cursor-pointer group flex flex-col items-center text-center">
+                        <div class="w-14 h-14 bg-rose-50 rounded-[1.25rem] flex items-center justify-center text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-colors mb-4 shadow-sm group-hover:shadow-rose-500/30">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                        </div>
+                        <h4 class="font-black text-slate-900 text-[11px] lg:text-xs uppercase tracking-widest" data-i18n="card_export">Export Ops</h4>
+                        <p class="text-[9px] lg:text-[10px] font-bold text-slate-400 mt-2" data-i18n="card_export_sub">APEDA Protocols</p>
+                    </div>
+
+                    <div onclick="showMathModels()" class="bg-slate-900 p-5 lg:p-6 rounded-[2rem] shadow-lg border border-slate-800 flex flex-col items-center justify-center text-center relative overflow-hidden cursor-pointer group hover:-translate-y-1 transition-transform">
+                        <div class="absolute inset-0 bg-emerald-500/10 animate-pulse-soft"></div>
+                        <h4 class="font-black text-white text-xs uppercase tracking-widest relative z-10 mb-2 group-hover:text-emerald-400 transition-colors">SmartFarm AI</h4>
+                        <p class="text-[10px] text-slate-400 font-medium relative z-10">Math Engine Active</p>
+                        <div class="mt-4 flex gap-1">
+                            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse blur-[1px]"></span>
+                            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce blur-[1px]" style="animation-delay: 100ms"></span>
+                            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse blur-[1px]" style="animation-delay: 200ms"></span>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Markov Chain Forecast -->
+                    <div onclick="showMarkovForecast()" class="bg-gradient-to-br from-indigo-600 to-blue-700 p-5 lg:p-6 rounded-[2rem] shadow-lg border border-indigo-500/50 flex flex-col items-center justify-center text-center relative overflow-hidden cursor-pointer group hover:-translate-y-1 transition-transform">
+                        <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="text-3xl mb-2 relative z-10">🔮</div>
+                        <h4 class="font-black text-white text-[11px] lg:text-xs uppercase tracking-widest relative z-10 mb-1">Season Forecast</h4>
+                        <p class="text-[9px] lg:text-[10px] font-bold text-indigo-200 relative z-10">Markov Chain Matrix</p>
+                    </div>
+
+                    <!-- NEW: Sensitivity / ROI -->
+                    <div onclick="showSensitivityAnalysis()" class="bg-gradient-to-br from-amber-500 to-orange-600 p-5 lg:p-6 rounded-[2rem] shadow-lg border border-amber-400/50 flex flex-col items-center justify-center text-center relative overflow-hidden cursor-pointer group hover:-translate-y-1 transition-transform">
+                        <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="text-3xl mb-2 relative z-10">⚖️</div>
+                        <h4 class="font-black text-white text-[11px] lg:text-xs uppercase tracking-widest relative z-10 mb-1">ROI Analysis</h4>
+                        <p class="text-[9px] lg:text-[10px] font-bold text-amber-100 relative z-10">Resource Sensitivity</p>
+                    </div>
+
+                    <!-- NEW: Future Risk Simulator -->
+                    <a href="/simulator.html" class="bg-gradient-to-br from-fuchsia-600 to-purple-700 p-5 lg:p-6 rounded-[2rem] shadow-lg border border-fuchsia-500/50 flex flex-col items-center justify-center text-center relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                        <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="text-3xl mb-2 relative z-10">⏱️</div>
+                        <h4 class="font-black text-white text-[11px] lg:text-xs uppercase tracking-widest relative z-10 mb-1">Predict My Future</h4>
+                        <p class="text-[9px] lg:text-[10px] font-bold text-fuchsia-200 relative z-10">SmartLife AI 2.0</p>
+                    </a>
+
+                    <!-- NEW: Crop Disease Detection -->
+                    <a href="/vision.html" class="bg-gradient-to-br from-emerald-700 to-teal-800 p-5 lg:p-6 rounded-[2rem] shadow-lg border border-emerald-500/50 flex flex-col items-center justify-center text-center relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                        <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="text-3xl mb-2 relative z-10">🌿</div>
+                        <h4 class="font-black text-white text-[11px] lg:text-xs uppercase tracking-widest relative z-10 mb-1" data-i18n="card_vision">Scan Disease</h4>
+                        <p class="text-[9px] lg:text-[10px] font-bold text-emerald-200 relative z-10" data-i18n="card_vision_sub">AI Leaf Analysis</p>
+                    </a>
+
+                    <!-- NEW: Yield Predictor -->
+                    <a href="/yield.html" class="bg-gradient-to-br from-blue-700 to-indigo-800 p-5 lg:p-6 rounded-[2rem] shadow-lg border border-blue-500/50 flex flex-col items-center justify-center text-center relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                        <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="text-3xl mb-2 relative z-10">🌦️</div>
+                        <h4 class="font-black text-white text-[11px] lg:text-xs uppercase tracking-widest relative z-10 mb-1" data-i18n="card_yield">Yield Predictor</h4>
+                        <p class="text-[9px] lg:text-[10px] font-bold text-blue-200 relative z-10" data-i18n="card_yield_sub">ML Growth Forecast</p>
+                    </a>
+                </div>
+
+                <!-- Crop Filter & Search System -->
+                <div class="bg-white rounded-[2.5rem] shadow-lg border border-slate-200/60 p-2 sm:p-4">
+                    <div class="flex flex-col md:flex-row gap-4 items-center">
+                        <div class="relative w-full md:w-[60%] shrink-0">
+                            <svg class="w-5 h-5 absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <input type="text" id="cropSearch" placeholder="Search 30+ optimized crops..." class="w-full pl-12 pr-6 py-4 bg-slate-50 rounded-full border border-slate-200 focus:bg-white transition-all outline-none font-bold text-slate-800 text-sm shadow-inner input-focus">
+                        </div>
+                        
+                        <div class="w-full overflow-x-auto no-scrollbar flex items-center gap-2 pb-2 md:pb-0 hide-scrollbar">
+                            <button onclick="setFilter('all')" id="btn-all" class="filter-btn flex-shrink-0 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-slate-900 text-white shadow-md hover:bg-slate-800" data-i18n="crop_filter_all">All</button>
+                            <button onclick="setFilter('Low')" id="btn-Low" class="filter-btn flex-shrink-0 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-white text-slate-500 border border-slate-200 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200" data-i18n="crop_filter_safe">Safe Bets</button>
+                            <div class="h-6 w-[2px] bg-slate-100 mx-1 flex-shrink-0"></div>
+                            <button onclick="setFilter('Cash Crops')" id="btn-Cash-Crops" class="filter-btn flex-shrink-0 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white text-slate-500 border border-slate-200 hover:bg-slate-50" data-i18n="crop_filter_cash">Cash Crops</button>
+                            <button onclick="setFilter('Grains')" id="btn-Grains" class="filter-btn flex-shrink-0 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white text-slate-500 border border-slate-200 hover:bg-slate-50" data-i18n="crop_filter_grain">Grains</button>
+                            <button onclick="setFilter('Vegetables')" id="btn-Vegetables" class="filter-btn flex-shrink-0 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white text-slate-500 border border-slate-200 hover:bg-slate-50" data-i18n="crop_filter_vegetable">Vegetables</button>
+                            <button onclick="setFilter('Fruits')" id="btn-Fruits" class="filter-btn flex-shrink-0 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white text-slate-500 border border-slate-200 hover:bg-slate-50" data-i18n="crop_filter_fruit">Fruits</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Farm Optimizer Call to Action -->
+                <div class="bg-gradient-to-br from-slate-900 to-indigo-950 border border-slate-800 rounded-[2.5rem] p-6 flex flex-col md:flex-row justify-between items-center shadow-2xl relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-indigo-400/30 transition-colors"></div>
+                    <div class="relative z-10">
+                        <h4 class="text-sm font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2 mb-1">
+                            <span class="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-300 flex justify-center items-center font-serif italic text-lg">LP</span> Mathematical Optimization
+                        </h4>
+                        <p class="text-xs text-slate-300 font-medium max-w-lg">Use the Simplex-based Fractional Knapsack algorithm to mathematically divide your land precisely to maximize net profit under strict constraints.</p>
+                    </div>
+                    <button id="runOptimizerBtn" onclick="showLPModal()" class="mt-5 md:mt-0 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:bg-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] transition-all active:scale-95 flex-shrink-0 relative z-10 border border-indigo-400/50">
+                        Launch Optimizer
+                    </button>
+                </div>
+
+                <!-- AI Recommendations Results -->
+                <div>
+                     <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2" data-i18n="section_ai_results">Top AI Recommendations</h3>
+                    <div id="resultsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[300px]">
+                        <!-- Loading or results injected here -->
+                    </div>
+                    
+                    <div id="emptyState" class="hidden py-24 bg-white/50 border border-slate-200 border-dashed rounded-[3rem] text-center text-slate-400 animate-slide-up backdrop-blur-sm shadow-sm mt-6">
+                        <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner ring-8 ring-white">
+                            <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <h4 class="font-black uppercase tracking-widest text-sm text-slate-900" data-i18n="empty_title">No Optimal Crops Found</h4>
+                        <p class="text-xs mt-3 text-slate-500 font-medium" data-i18n="empty_sub">Try increasing the timeline or adjusting soil type.</p>
+                        <button onclick="setFilter('all'); document.getElementById('maxDurationInput').value=365; document.getElementById('districtSelect').dispatchEvent(new Event('change'))" class="mt-6 px-6 py-2.5 bg-white text-slate-600 border border-slate-200 rounded-full text-xs font-bold hover:bg-slate-50 shadow-sm transition-all focus:ring-2 focus:ring-slate-200 outline-none" data-i18n="empty_reset">Reset Filters</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- FULLSCREEN MODAL OVERLAY -->
+    <div id="printSection" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] overflow-y-auto w-full h-full p-4 md:p-6 lg:p-10 no-print transition-all">
+        <div class="bg-white w-full max-w-6xl rounded-[3rem] md:rounded-[4rem] shadow-2xl overflow-hidden relative mx-auto mb-10 border border-white/20 animate-slide-up transform-gpu">
+            
+            <!-- Navbar inside modal for controls -->
+            <div class="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-white to-white/0 flex justify-end items-center px-8 z-50 pointer-events-none">
+                <div class="pointer-events-auto flex gap-3 shadow-lg rounded-2xl bg-white/90 backdrop-blur p-2 border border-slate-100">
+                    <button onclick="closePlan()" class="p-3 bg-slate-100 text-slate-500 rounded-xl hover:bg-rose-50 hover:text-rose-600 transition-colors active:scale-95 group focus:outline-none focus:ring-2 focus:ring-slate-200">
+                        <svg class="w-6 h-6 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="modalContent" class="p-6 md:p-12 lg:p-16 min-h-[500px]">
+                <!-- Modal content dynamically injected -->
+            </div>
+        </div>
+    </div>
+
+    <!-- VOICE AI ASSISTANT (FLOATING) -->
+    <div class="fixed bottom-6 right-6 z-[100] flex items-center justify-end group no-print">
+        <div id="voiceAiTooltip" class="mr-4 px-4 py-2 bg-slate-900 border border-slate-700 text-white text-[11px] font-bold rounded-2xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity max-w-[200px] text-right pointer-events-none transform translate-x-2 group-hover:translate-x-0" data-i18n="voice_idle">
+            Tap to Ask AI
+        </div>
+        <button id="voiceAiBtn" onclick="toggleVoiceAI()" class="w-16 h-16 bg-emerald-600 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.4)] flex items-center justify-center text-white border-[3px] border-white hover:scale-110 active:scale-95 transition-all">
+            <svg class="w-8 h-8 pointer-events-none" id="micIconMain" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+            <div id="micWaves" class="hidden absolute inset-0 rounded-full pointer-events-none">
+                <div class="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-50"></div>
+                <div class="absolute -inset-2 bg-emerald-400 rounded-full animate-ping opacity-25" style="animation-duration: 1.5s;"></div>
+            </div>
+        </button>
+    </div>
+
+    <!-- Final System Insight Badge -->
+    <div class="flex justify-center mb-12">
+        <div class="px-6 py-3 bg-white/80 backdrop-blur-sm border border-emerald-100 rounded-full text-[11px] font-bold text-emerald-800 shadow-sm flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span data-i18n="ai_final_insight">From crop health to financial future, this system empowers farmers with AI-driven decisions.</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="/js/app.js"></script>
+    <script type="module" src="/js/voice.js"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('[PWA] ServiceWorker registered with scope:', registration.scope);
+            })
+            .catch(error => {
+              console.error('[PWA] ServiceWorker registration failed:', error);
+            });
+        });
+      }
+    </script>
+</body>
+</html>
