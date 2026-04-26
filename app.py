@@ -144,6 +144,10 @@ def index():
         except Exception:
             return jsonify({"status": "error", "message": "UI Templates missing from root bounds. Please verify the `templates/` folder directly."}), 500
 
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204
+
 @app.route('/docs', methods=['GET'])
 def docs():
     return render_template('docs.html')
