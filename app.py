@@ -119,12 +119,16 @@ def login():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.before_first_request
 def make_db():
     try:
         db.create_all()
+        logger.info("Database initialized safely avoiding implicit hooks.")
     except Exception as e:
         logger.error(f"PostgreSQL DB Setup logic failed: {e}")
+
+# Executing bounds seamlessly matching modern Flask contexts outside decorators
+with app.app_context():
+    make_db()
 
 from flask import render_template
 import time
