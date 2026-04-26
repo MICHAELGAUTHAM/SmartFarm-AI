@@ -1,7 +1,7 @@
 // API configuration
 // For split deployment (Frontend on Static Site, Backend on Web Service):
 // Set API_BASE to your Render Web Service URL (e.g., https://smartfarm-backend.onrender.com)
-const API_BASE = ''; 
+const API_BASE = 'https://smartfarm-ai1.onrender.com';
 const API_URL = `${API_BASE}/api`;
 
 export async function fetchDistricts() {
@@ -155,8 +155,8 @@ export function formatCurrencyShort(amount) {
     const abs = Math.abs(amount);
     const sign = amount < 0 ? '-' : '';
     if (abs >= 10000000) return `${sign}₹${(abs / 10000000).toFixed(1)}Cr`;
-    if (abs >= 100000)  return `${sign}₹${(abs / 100000).toFixed(1)}L`;
-    if (abs >= 1000)    return `${sign}₹${(abs / 1000).toFixed(1)}K`;
+    if (abs >= 100000) return `${sign}₹${(abs / 100000).toFixed(1)}L`;
+    if (abs >= 1000) return `${sign}₹${(abs / 1000).toFixed(1)}K`;
     return `${sign}₹${abs}`;
 }
 
