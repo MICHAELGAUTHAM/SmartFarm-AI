@@ -33,9 +33,13 @@ app.use('/api/alerts', alertsRouter());
 app.use('/api/market', marketRouter());
 app.use('/api/vision', visionRouter());
 
-// Health check
+// ── Health Checks ─────────────────────────────────────────────────────────────
+app.get("/", (req, res) => {
+  res.send("SmartFarm Backend Running");
+});
+
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', using: 'in-memory-js-db', version: '17.3.0' });
+  res.json({ status: 'success', data: { version: '17.3.0' }, message: 'healthy' });
 });
 
 // ── Local ML / Weather / Market  (pure localhost, no Flask) ───────────────────
@@ -43,80 +47,69 @@ import { districtsData, commoditiesData } from './data.js';
 
 // POST /api/v1/predict
 app.post('/api/v1/predict', (req, res) => {
-  const { income = 0, expenses = 0, city = 'Madurai' } = req.body;
+  try {
+    const { income = 0, expenses = 0, city = 'Madurai' } = req.body;
+    const inc  = parseFloat(income)   || 0;
+    const exp  = parseFloat(expenses) || 0;
+    const profit = Math.round((inc - exp) * 100) / 100;
+    const risk   = profit > 0 ? 'Low' : 'High';
 
-  const inc  = parseFloat(income)   || 0;
-  const exp  = parseFloat(expenses) || 0;
-  const profit = Math.round((inc - exp) * 100) / 100;
-  const risk   = profit > 0 ? 'Low' : 'High';
+    const recommendation = profit > 0
+      ? 'Market conditions look stable. Consider expanding crop variety or increasing acreage.'
+      : 'Expenses exceed income. Reduce input costs, explore government subsidies, or diversify crops.';
 
-  const recommendation = profit > 0
-    ? 'Market conditions look stable. Consider expanding crop variety or increasing acreage.'
-    : 'Expenses exceed income. Reduce input costs, explore government subsidies, or diversify crops.';
-
-  console.log(`[predict] income=${inc} expenses=${exp} profit=${profit} risk=${risk}`);
-
-  res.json({
-    status:  'success',
-    data:    { profit, risk, recommendation, income: inc, expenses: exp },
-    message: 'Prediction generated successfully'
-  });
+    res.json({
+      status:  'success',
+      data:    { profit, risk, recommendation, income: inc, expenses: exp },
+      message: 'OK'
+    });
+  } catch (err) {
+    res.status(400).json({ status: 'error', data: null, message: err.message });
+  }
 });
 
 // GET /api/v1/weather?city=Madurai
 app.get('/api/v1/weather', (req, res) => {
   const city = req.query.city || 'Madurai';
-
-  // Derive temperature from district data if available
-  const district = districtsData.find(
-    d => d.name.toLowerCase() === city.toLowerCase()
-  );
-
-  const month   = new Date().getMonth(); // 0–11
-  const isWet   = month >= 6 && month <= 10;
-  const temp    = district
-    ? (isWet ? district.avg_temp_jul : district.avg_temp_apr)
-    : 32;
-  const rainfall = district
-    ? (isWet ? district.rain_jul : district.rain_apr)
-    : 15;
-
-  const risk    = rainfall > 150 ? 'High' : rainfall > 80 ? 'Medium' : 'Low';
-  const advisory = risk === 'High'
-    ? 'Heavy rainfall expected. Delay sowing and ensure field drainage.'
-    : risk === 'Medium'
-    ? 'Moderate rainfall. Irrigation may not be needed this week.'
-    : 'Dry conditions. Schedule irrigation every 3–4 days.';
+  const district = districtsData.find(d => d.name.toLowerCase() === city.toLowerCase());
+  const month = new Date().getMonth();
+  const isWet = month >= 6 && month <= 10;
+  const temp = district ? (isWet ? district.avg_temp_jul : district.avg_temp_apr) : 32;
+  const rainfall = district ? (isWet ? district.rain_jul : district.rain_apr) : 15;
+  const risk = rainfall > 150 ? 'High' : rainfall > 80 ? 'Medium' : 'Low';
+  const advisory = risk === 'High' ? 'Heavy rainfall.' : 'Stable.';
 
   res.json({
-    status:  'success',
-    data:    { city, temperature: temp, rainfall, humidity: 65, risk, advisory },
-    message: 'Weather data fetched'
+    status: 'success',
+    data: { city, temperature: temp, rainfall, humidity: 65, risk, advisory },
+    message: 'OK'
   });
 });
 
 // GET /api/v1/market
 app.get('/api/v1/market', (req, res) => {
   res.json({
-    status:  'success',
-    data:    commoditiesData,
-    message: 'Market prices fetched'
+    status: 'success',
+    data: commoditiesData,
+    message: 'OK'
   });
 });
-
-// GET /api/v1/ai-status
-app.get('/api/v1/ai-status', (_req, res) => {
-  res.json({ status: 'success', data: { mode: 'local', version: '1.0' }, message: 'healthy' });
-});
-
 
 // SPA fallback
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
+// ── Error Handling ────────────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({
+    status: "error",
+    data: null,
+    message: "Server error"
+  });
+});
+
 app.listen(PORT, () => {
-  console.log(`\n🚜 SmartFarm AI Server running at http://localhost:${PORT}`);
-  console.log(`   API: http://localhost:${PORT}/api/health\n`);
-  console.log(`   Powered by pure JS algorithms (Node-gyp dependencies removed)`);
+  console.log(`SmartFarm Backend Running on port ${PORT}`);
 });
