@@ -1,5 +1,8 @@
-// API calls wrapper
-const API_URL = '/api';
+// API configuration
+// For split deployment (Frontend on Static Site, Backend on Web Service):
+// Set API_BASE to your Render Web Service URL (e.g., https://smartfarm-backend.onrender.com)
+const API_BASE = ''; 
+const API_URL = `${API_BASE}/api`;
 
 export async function fetchDistricts() {
     try {

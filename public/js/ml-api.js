@@ -6,7 +6,9 @@
  * or use the callback form: predict(payload, { onLoading, onSuccess, onError })
  */
 
-const BASE = '';   // same-origin — Express proxies to Flask automatically
+// API configuration
+// For split deployment: Set BASE to your Render Web Service URL
+const BASE = ''; 
 
 // ── Internal fetch wrapper ────────────────────────────────────────────────────
 
