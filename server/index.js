@@ -39,44 +39,59 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── Flask ML Backend Proxy ─────────────────────────────────────────────────────
-// Forward /api/v1/* requests to the Flask backend on Render.
-// This avoids CORS issues and keeps a single origin for the frontend.
 const FLASK_API = process.env.FLASK_API_URL || 'https://smartfarm-ai-1a8r.onrender.com';
 
-app.post('/api/v1/predict', async (req, res) => {
+/**
+ * Generic proxy helper — forwards to Flask, logs timing, handles failures.
+ * @param {string} path   Flask path (e.g. '/api/v1/predict')
+ * @param {object} opts   fetch options
+ * @param {object} res    Express response object
+ */
+async function flaskProxy(path, opts, res) {
+  const url   = `${FLASK_API}${path}`;
+  const start = Date.now();
   try {
-    const r = await fetch(`${FLASK_API}/api/v1/predict`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(req.body)
+    const r    = await fetch(url, { ...opts, signal: AbortSignal.timeout(8000) });
+    const data = await r.json();
+    const ms   = Date.now() - start;
+    console.log(`[proxy] ${opts.method || 'GET'} ${path} → ${r.status} (${ms}ms)`);
+    return res.status(r.status).json(data);
+  } catch (err) {
+    const ms = Date.now() - start;
+    console.error(`[proxy] FAILED ${opts.method || 'GET'} ${path} (${ms}ms):`, err.message);
+    return res.status(502).json({
+      status:  'error',
+      data:    null,
+      message: `Flask backend unreachable: ${err.message}`
     });
-    const data = await r.json();
-    res.status(r.status).json(data);
-  } catch (err) {
-    res.status(502).json({ status: 'error', message: 'Flask backend unreachable', detail: err.message });
   }
+}
+
+// POST /api/v1/predict  ── ML prediction
+app.post('/api/v1/predict', (req, res) =>
+  flaskProxy('/api/v1/predict', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(req.body)
+  }, res)
+);
+
+// GET /api/v1/weather  ── weather data
+app.get('/api/v1/weather', (req, res) => {
+  const city = req.query.city || 'Madurai';
+  flaskProxy(`/api/v1/weather?city=${encodeURIComponent(city)}`, {}, res);
 });
 
-app.get('/api/v1/weather', async (req, res) => {
-  try {
-    const city = req.query.city || 'Madurai';
-    const r = await fetch(`${FLASK_API}/api/v1/weather?city=${encodeURIComponent(city)}`);
-    const data = await r.json();
-    res.status(r.status).json(data);
-  } catch (err) {
-    res.status(502).json({ status: 'error', message: 'Flask weather API unreachable' });
-  }
-});
+// GET /api/v1/market  ── market prices
+app.get('/api/v1/market', (req, res) =>
+  flaskProxy('/api/v1/market-prices', {}, res)
+);
 
-app.get('/api/v1/market', async (req, res) => {
-  try {
-    const r = await fetch(`${FLASK_API}/api/v1/market-prices`);
-    const data = await r.json();
-    res.status(r.status).json(data);
-  } catch (err) {
-    res.status(502).json({ status: 'error', message: 'Flask market API unreachable' });
-  }
-});
+// GET /api/v1/ai-status  ── health bridge to Flask
+app.get('/api/v1/ai-status', (req, res) =>
+  flaskProxy('/health', {}, res)
+);
+
 
 // SPA fallback
 app.get('*', (req, res) => {
