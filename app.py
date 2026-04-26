@@ -22,8 +22,8 @@ import json
 # Database initialization overrides securely tracking environments
 db_url = os.getenv('DATABASE_URL')
 if not db_url:
-    logger.warning("DATABASE_URL missing. Defaulting safely to local PostgreSQL mapping.")
-    db_url = 'postgresql://postgres:postgres@localhost:5432/smartfarm'
+    logger.warning("DB not connected, running in demo mode (SQLite :memory:).")
+    db_url = 'sqlite:///:memory:'
     
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -158,15 +158,17 @@ def docs():
 
 @app.route('/metrics', methods=['GET'])
 def system_metrics():
-    # Admin locked observability natively tracking scale loops safely
-    today = date.today()
-    tot_users = User.query.count()
-    preds_tdy = Prediction.query.filter(func.date(Prediction.created_at) == today).count()
-    act_users = User.query.join(Prediction).filter(func.date(Prediction.created_at) == today).distinct().count()
-    err_tdy = ErrorLog.query.filter(func.date(ErrorLog.created_at) == today).count()
-    
-    err_rate = round((err_tdy / preds_tdy * 100), 2) if preds_tdy > 0 else 0
-    
+    try:
+        today = date.today()
+        tot_users = User.query.count()
+        preds_tdy = Prediction.query.filter(func.date(Prediction.created_at) == today).count()
+        act_users = User.query.join(Prediction).filter(func.date(Prediction.created_at) == today).distinct().count()
+        err_tdy = ErrorLog.query.filter(func.date(ErrorLog.created_at) == today).count()
+        err_rate = round((err_tdy / preds_tdy * 100), 2) if preds_tdy > 0 else 0
+    except Exception:
+        tot_users = preds_tdy = act_users = 0
+        err_rate = 0
+
     return jsonify({
         "status": "success",
         "data": {
