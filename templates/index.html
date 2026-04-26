@@ -37,7 +37,7 @@
         <h2>The Ultimate B2B Agricultural Intelligence Engine</h2>
         <p>Harness real-time Tamil NLP Voice Models, Live Weather syncs, and Global Market API algorithms to maximize predictable agricultural supply-chain profit yields natively.</p>
         <a href="/dashboard" class="btn">Start Free Trial</a>
-        <a href="#pricing" class="btn btn-outline">View Plans</a>
+        <button onclick="runDemo()" class="btn btn-outline" style="cursor: pointer;">Run API Demo</button>
     </div>
 
     <div id="pricing" class="pricing">
@@ -69,5 +69,34 @@
             </ul>
         </div>
     </div>
+    
+    <script>
+        function runDemo() {
+            // Firing test sequence tracking Live B2B API deployment paths explicitly
+            fetch("https://smartfarm-ai-1a8r.onrender.com/api/v1/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    income: 10000,
+                    expenses: 5000
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+                if (data.status === "success") {
+                    alert("Prediction Loaded Successfully!\nProfit Match: ₹" + data.data.profit + "\nExplanation: " + data.data.explanation);
+                } else {
+                    alert("System responded with limits: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Demo Request failed. Ensure backend Gunicorn deployments are active!");
+            });
+        }
+    </script>
 </body>
 </html>
