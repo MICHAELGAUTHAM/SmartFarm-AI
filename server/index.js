@@ -38,6 +38,46 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', using: 'in-memory-js-db', version: '17.3.0' });
 });
 
+// ── Flask ML Backend Proxy ─────────────────────────────────────────────────────
+// Forward /api/v1/* requests to the Flask backend on Render.
+// This avoids CORS issues and keeps a single origin for the frontend.
+const FLASK_API = process.env.FLASK_API_URL || 'https://smartfarm-ai-1a8r.onrender.com';
+
+app.post('/api/v1/predict', async (req, res) => {
+  try {
+    const r = await fetch(`${FLASK_API}/api/v1/predict`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(req.body)
+    });
+    const data = await r.json();
+    res.status(r.status).json(data);
+  } catch (err) {
+    res.status(502).json({ status: 'error', message: 'Flask backend unreachable', detail: err.message });
+  }
+});
+
+app.get('/api/v1/weather', async (req, res) => {
+  try {
+    const city = req.query.city || 'Madurai';
+    const r = await fetch(`${FLASK_API}/api/v1/weather?city=${encodeURIComponent(city)}`);
+    const data = await r.json();
+    res.status(r.status).json(data);
+  } catch (err) {
+    res.status(502).json({ status: 'error', message: 'Flask weather API unreachable' });
+  }
+});
+
+app.get('/api/v1/market', async (req, res) => {
+  try {
+    const r = await fetch(`${FLASK_API}/api/v1/market-prices`);
+    const data = await r.json();
+    res.status(r.status).json(data);
+  } catch (err) {
+    res.status(502).json({ status: 'error', message: 'Flask market API unreachable' });
+  }
+});
+
 // SPA fallback
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
