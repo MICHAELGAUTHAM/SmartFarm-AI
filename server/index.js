@@ -38,59 +38,76 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', using: 'in-memory-js-db', version: '17.3.0' });
 });
 
-// ── Flask ML Backend Proxy ─────────────────────────────────────────────────────
-const FLASK_API = process.env.FLASK_API_URL || 'https://smartfarm-ai-1a8r.onrender.com';
+// ── Local ML / Weather / Market  (pure localhost, no Flask) ───────────────────
+import { districtsData, commoditiesData } from './data.js';
 
-/**
- * Generic proxy helper — forwards to Flask, logs timing, handles failures.
- * @param {string} path   Flask path (e.g. '/api/v1/predict')
- * @param {object} opts   fetch options
- * @param {object} res    Express response object
- */
-async function flaskProxy(path, opts, res) {
-  const url   = `${FLASK_API}${path}`;
-  const start = Date.now();
-  try {
-    const r    = await fetch(url, { ...opts, signal: AbortSignal.timeout(8000) });
-    const data = await r.json();
-    const ms   = Date.now() - start;
-    console.log(`[proxy] ${opts.method || 'GET'} ${path} → ${r.status} (${ms}ms)`);
-    return res.status(r.status).json(data);
-  } catch (err) {
-    const ms = Date.now() - start;
-    console.error(`[proxy] FAILED ${opts.method || 'GET'} ${path} (${ms}ms):`, err.message);
-    return res.status(502).json({
-      status:  'error',
-      data:    null,
-      message: `Flask backend unreachable: ${err.message}`
-    });
-  }
-}
+// POST /api/v1/predict
+app.post('/api/v1/predict', (req, res) => {
+  const { income = 0, expenses = 0, city = 'Madurai' } = req.body;
 
-// POST /api/v1/predict  ── ML prediction
-app.post('/api/v1/predict', (req, res) =>
-  flaskProxy('/api/v1/predict', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(req.body)
-  }, res)
-);
+  const inc  = parseFloat(income)   || 0;
+  const exp  = parseFloat(expenses) || 0;
+  const profit = Math.round((inc - exp) * 100) / 100;
+  const risk   = profit > 0 ? 'Low' : 'High';
 
-// GET /api/v1/weather  ── weather data
-app.get('/api/v1/weather', (req, res) => {
-  const city = req.query.city || 'Madurai';
-  flaskProxy(`/api/v1/weather?city=${encodeURIComponent(city)}`, {}, res);
+  const recommendation = profit > 0
+    ? 'Market conditions look stable. Consider expanding crop variety or increasing acreage.'
+    : 'Expenses exceed income. Reduce input costs, explore government subsidies, or diversify crops.';
+
+  console.log(`[predict] income=${inc} expenses=${exp} profit=${profit} risk=${risk}`);
+
+  res.json({
+    status:  'success',
+    data:    { profit, risk, recommendation, income: inc, expenses: exp },
+    message: 'Prediction generated successfully'
+  });
 });
 
-// GET /api/v1/market  ── market prices
-app.get('/api/v1/market', (req, res) =>
-  flaskProxy('/api/v1/market-prices', {}, res)
-);
+// GET /api/v1/weather?city=Madurai
+app.get('/api/v1/weather', (req, res) => {
+  const city = req.query.city || 'Madurai';
 
-// GET /api/v1/ai-status  ── health bridge to Flask
-app.get('/api/v1/ai-status', (req, res) =>
-  flaskProxy('/health', {}, res)
-);
+  // Derive temperature from district data if available
+  const district = districtsData.find(
+    d => d.name.toLowerCase() === city.toLowerCase()
+  );
+
+  const month   = new Date().getMonth(); // 0–11
+  const isWet   = month >= 6 && month <= 10;
+  const temp    = district
+    ? (isWet ? district.avg_temp_jul : district.avg_temp_apr)
+    : 32;
+  const rainfall = district
+    ? (isWet ? district.rain_jul : district.rain_apr)
+    : 15;
+
+  const risk    = rainfall > 150 ? 'High' : rainfall > 80 ? 'Medium' : 'Low';
+  const advisory = risk === 'High'
+    ? 'Heavy rainfall expected. Delay sowing and ensure field drainage.'
+    : risk === 'Medium'
+    ? 'Moderate rainfall. Irrigation may not be needed this week.'
+    : 'Dry conditions. Schedule irrigation every 3–4 days.';
+
+  res.json({
+    status:  'success',
+    data:    { city, temperature: temp, rainfall, humidity: 65, risk, advisory },
+    message: 'Weather data fetched'
+  });
+});
+
+// GET /api/v1/market
+app.get('/api/v1/market', (req, res) => {
+  res.json({
+    status:  'success',
+    data:    commoditiesData,
+    message: 'Market prices fetched'
+  });
+});
+
+// GET /api/v1/ai-status
+app.get('/api/v1/ai-status', (_req, res) => {
+  res.json({ status: 'success', data: { mode: 'local', version: '1.0' }, message: 'healthy' });
+});
 
 
 // SPA fallback
