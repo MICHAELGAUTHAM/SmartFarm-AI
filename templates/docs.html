@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartFarm AI API Documentation</title>
+    <style>
+        body { font-family: 'Inter', Arial, sans-serif; background: #fdfdfd; margin: 0; padding: 40px; color: #333; line-height: 1.6; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h1, h2, h3 { color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        pre { background: #2c3e50; color: #ecf0f1; padding: 20px; border-radius: 8px; overflow-x: auto; }
+        code { font-family: monospace; }
+        .method { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 14px; color: white; display: inline-block; margin-right: 10px; }
+        .post { background: #2980b9; }
+        .get { background: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>B2B API Documentation</h1>
+        <p>Integrate our intelligence algorithms directly inside your own application.</p>
+
+        <h2>Authentication</h2>
+        <p>All Enterprise requests must include a Bearer API Token inside the headers.</p>
+        <pre><code>Authorization: Bearer sk_smartfarm_your_secret_key</code></pre>
+
+        <h2>Endpoints</h2>
+
+        <h3><span class="method post">POST</span> /api/v1/predict</h3>
+        <p>Analyzes localized constraints fetching live weather/market thresholds dynamically to return aggregated farming intelligence logic.</p>
+        <strong>Parameters (JSON):</strong>
+        <ul>
+            <li><code>income</code> (integer) - Estimated Baseline Income</li>
+            <li><code>expenses</code> (integer) - Operational Expenditure</li>
+            <li><code>city</code> (string) - Geographic fetch point</li>
+        </ul>
+        <strong>Response Structure:</strong>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "profit": 35000,
+    "risk_score": 25.5,
+    "explanation": "Stable market patterns.",
+    "recommendation": "Standard schedules mapped."
+  },
+  "timestamp": "2026-04-26T00:00:00Z"
+}</code></pre>
+
+        <h3><span class="method get">GET</span> /api/v1/export</h3>
+        <p>Extracts deep User Prediction timelines into strict CSV string outputs for enterprise modeling.</p>
+
+        <h3><span class="method post">POST</span> /api/v1/feedback</h3>
+        <p>Allows enterprise API consumers or standard web interactions to pipe feedback variables to admin algorithms natively.</p>
+
+    </div>
+</body>
+</html>
