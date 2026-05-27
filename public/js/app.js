@@ -1153,3 +1153,129 @@ window.showSoilTestingDetails = async () => {
 
 
 bootstrap();
+import { predict as mlPredict } from './ml-api.js';
+
+window.runPrecisionPredict = async () => {
+    const payload = {
+        soil_n: parseInt(document.getElementById('soil_n')?.value) || 0,
+        soil_p: parseInt(document.getElementById('soil_p')?.value) || 0,
+        soil_k: parseInt(document.getElementById('soil_k')?.value) || 0,
+        crop_id: document.getElementById('cropTargetSelect')?.value || 1,
+        city: state.districts.find(d => d.id == state.currentDistrict)?.name || 'Madurai'
+    };
+
+    renderModal(`<div class="py-20 flex flex-col items-center gap-4"><div class="loader"></div><p class="text-xs font-black text-slate-400 uppercase tracking-widest animate-pulse">Computing Precision Matrix...</p></div>`);
+
+    try {
+        const res = await mlPredict(payload);
+        if (res.status === 'success') {
+            renderPrecisionReport(res.data);
+        }
+    } catch (err) {
+        renderModal(`<div class="p-10 text-center"><p class="text-rose-500 font-bold">Analysis Failed: ${err.message}</p></div>`);
+    }
+};
+
+function renderPrecisionReport(d) {
+    const isHigh = d.risk === 'High';
+    const score = d.suitability_score;
+    
+    renderModal(`
+        <div class="p-6 sm:p-12 animate-slide-up space-y-10 max-w-5xl mx-auto">
+            <!-- Header Card -->
+            <div class="bg-slate-900 text-white rounded-[3rem] p-8 sm:p-12 relative overflow-hidden shadow-2xl">
+                <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                    <div>
+                        <span class="px-4 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">B2B Scientific Report</span>
+                        <h2 class="text-3xl sm:text-5xl font-black mt-4 tracking-tighter">Precision Analysis: <span class="text-emerald-400">${d.crop}</span></h2>
+                        <p class="text-slate-400 font-medium mt-2">Generated for ${d.city} Region • ${new Date().toLocaleDateString()}</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-32 h-32 rounded-full border-8 border-slate-800 flex items-center justify-center relative">
+                            <svg class="w-full h-full absolute inset-0 -rotate-90">
+                                <circle cx="64" cy="64" r="56" fill="transparent" stroke="#1e293b" stroke-width="8"/>
+                                <circle cx="64" cy="64" r="56" fill="transparent" stroke="#10b981" stroke-width="8" stroke-dasharray="351.8" stroke-dashoffset="${351.8 - (351.8 * score / 100)}" stroke-linecap="round"/>
+                            </svg>
+                            <span class="text-3xl font-black text-white">${score}%</span>
+                        </div>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Suitability Score</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- NPK Score -->
+                <div class="bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm">
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Soil Health Breakdown</h4>
+                    <div class="space-y-4">
+                        ${Object.entries(d.soil_analytics).filter(([k])=>k!=='soil_score').map(([k, v]) => `
+                            <div>
+                                <div class="flex justify-between text-[10px] font-bold mb-1">
+                                    <span class="uppercase">${k.replace('_score','')} Balance</span>
+                                    <span>${v}%</span>
+                                </div>
+                                <div class="h-2 bg-slate-50 rounded-full overflow-hidden">
+                                    <div class="h-full bg-emerald-500 rounded-full" style="width: ${v}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Fertilizer Plan -->
+                <div class="bg-emerald-50 border border-emerald-100 p-8 rounded-[2.5rem] shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+                    <h4 class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-6">Fertilizer Deficit (RECOM)</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="text-center">
+                            <p class="text-xl font-black text-emerald-900">${d.fertilizer_rec.nitrogen}</p>
+                            <p class="text-[8px] font-bold text-emerald-600 uppercase">N</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xl font-black text-emerald-900">${d.fertilizer_rec.phosphorus}</p>
+                            <p class="text-[8px] font-bold text-emerald-600 uppercase">P</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xl font-black text-emerald-900">${d.fertilizer_rec.potassium}</p>
+                            <p class="text-[8px] font-bold text-emerald-600 uppercase">K</p>
+                        </div>
+                    </div>
+                    <p class="text-[9px] text-center text-emerald-500 mt-4 font-bold uppercase tracking-widest">All units in ${d.fertilizer_rec.unit}</p>
+                </div>
+
+                <!-- Market Pulse -->
+                <div class="bg-indigo-50 border border-indigo-100 p-8 rounded-[2.5rem] shadow-sm">
+                    <h4 class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-4">Market Pulse</h4>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-bold text-slate-600">${d.market_pulse.commodity}</span>
+                        <span class="text-lg font-black text-indigo-900">₹${d.market_pulse.modal_price.toLocaleString()}</span>
+                    </div>
+                    <div class="p-3 bg-white/50 rounded-xl flex items-center justify-between">
+                        <span class="text-[9px] font-black text-slate-400 uppercase">Trend</span>
+                        <span class="px-2 py-1 ${d.market_pulse.trend==='Up'?'bg-emerald-100 text-emerald-600':'bg-rose-100 text-rose-600'} rounded-lg text-[9px] font-black">${d.market_pulse.trend}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Insight Section -->
+            <div class="bg-slate-50 border border-slate-200 p-8 rounded-[3rem] flex flex-col md:flex-row gap-8 items-center">
+                <div class="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center text-4xl shadow-emerald-500/10">🤖</div>
+                <div class="flex-1">
+                    <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        Agronomy Intelligence Agent
+                        <span class="px-2 py-0.5 bg-rose-100 text-rose-600 rounded-lg text-[8px]">${d.risk} Risk</span>
+                    </h4>
+                    <p class="text-slate-600 font-medium leading-relaxed italic">"${d.recommendation}"</p>
+                    <div class="mt-4 flex items-center gap-4">
+                         <div class="px-3 py-1 bg-white border border-slate-200 rounded-full text-[9px] font-bold text-slate-500">Climate: ${d.climate_alert}</div>
+                    </div>
+                </div>
+                <button onclick="window.downloadPlanPDF()" class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-emerald-600 transition-all flex-shrink-0">
+                    Export Analysis PDF
+                </button>
+            </div>
+        </div>
+    `);
+}

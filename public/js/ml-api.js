@@ -8,7 +8,7 @@
 
 // API configuration
 // For split deployment: Set BASE to your Render Web Service URL
-const BASE = ''; 
+const BASE = 'https://smartfarm-ai1.onrender.com'; 
 
 // ── Internal fetch wrapper ────────────────────────────────────────────────────
 
@@ -63,13 +63,13 @@ export async function runWithState(asyncFn, { loadingEl, resultEl, errorEl } = {
 // ── Public API functions ──────────────────────────────────────────────────────
 
 /**
- * predict({ income, expenses, city })
- * Returns full response JSON: { status, data: { profit, risk, recommendation } }
+ * predict({ soil_n, soil_p, soil_k, crop_id, city })
+ * Returns full response JSON: { status, data: { suitability_score, risk, recommendation, fertilizer_rec, ... } }
  */
-export async function predict({ income, expenses, city = 'Madurai' } = {}) {
+export async function predict({ soil_n, soil_p, soil_k, crop_id, city = 'Madurai' } = {}) {
     return apiCall('/api/v1/predict', {
         method: 'POST',
-        body:   JSON.stringify({ income, expenses, city })
+        body:   JSON.stringify({ soil_n, soil_p, soil_k, crop_id, city })
     });
 }
 
@@ -112,44 +112,78 @@ export async function predictAndRender(formData, containerEl) {
     if (!containerEl) return;
 
     containerEl.innerHTML = `
-        <div style="display:flex;align-items:center;gap:8px;color:#8b949e;font-size:14px;padding:12px;">
-            <div class="sf-spinner"></div> Running AI prediction…
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;color:#8b949e;font-size:14px;padding:32px;background:#0d1117;border-radius:20px;border:1px dashed #30363d;">
+            <div class="sf-spinner" style="width:24px;height:24px;"></div> 
+            <span style="font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:10px;">Analyzing Precision Matrix...</span>
         </div>`;
 
     try {
         const res  = await predict(formData);
         const d    = res.data;
-        const low  = d.risk === 'Low';
+        const low  = d.risk_level === 'Low';
+        const conf = d.confidence_score;
 
         containerEl.innerHTML = `
             <div class="sf-result-card" style="
                 background:#161b22;border:1px solid ${low ? '#238636' : '#6e2222'};
-                border-radius:12px;padding:24px;animation:sf-fade-in .3s ease;
+                border-radius:24px;padding:28px;animation:sf-fade-in .4s cubic-bezier(0.16, 1, 0.3, 1);
+                box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             ">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                    <span style="font-size:13px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;">Prediction Result</span>
-                    <span style="
-                        padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;
-                        background:${low ? 'rgba(35,134,54,.2)' : 'rgba(248,81,73,.15)'};
-                        color:${low ? '#3fb950' : '#f85149'};
-                    ">${d.risk} Risk</span>
+                <!-- Header: Confidence & Risk -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:36px;height:36px;border-radius:10px;background:${low ? 'rgba(35,134,54,.1)' : 'rgba(248,81,73,.1)'};display:flex;align-items:center;justify-content:center;color:${low ? '#3fb950' : '#f85149'};">
+                            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <span style="font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;display:block;font-weight:800;">Risk Assessment</span>
+                            <span style="color:${low ? '#3fb950' : '#f85149'};font-weight:900;font-size:14px;text-transform:uppercase;">${d.risk_level} Risk</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;display:block;font-weight:800;">Confidence</span>
+                        <span style="color:#6366f1;font-weight:900;font-size:16px;">${conf}%</span>
+                    </div>
                 </div>
-                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #21262d;">
-                    <span style="color:#8b949e;font-size:14px;">Profit</span>
-                    <span style="font-weight:700;font-size:18px;color:${low ? '#3fb950' : '#f85149'};">
-                        ₹${d.profit.toLocaleString('en-IN')}
-                    </span>
+
+                <!-- Main Prediction -->
+                <div style="background:rgba(255,255,255,0.03);border-radius:16px;padding:20px;margin-bottom:20px;border:1px solid rgba(255,255,255,0.05);">
+                    <span style="font-size:11px;color:#8b949e;text-transform:uppercase;font-weight:700;display:block;margin-bottom:4px;">Predicted Yield</span>
+                    <div style="display:flex;align-items:baseline;gap:8px;">
+                        <span style="font-weight:900;font-size:32px;color:#fff;">${d.predicted_yield.toLocaleString('en-IN')}</span>
+                        <span style="color:#8b949e;font-size:14px;font-weight:700;">kg/acre</span>
+                    </div>
                 </div>
-                <div style="margin-top:14px;font-size:13px;color:#8b949e;line-height:1.7;
-                    padding:12px;background:#0d1117;border-radius:8px;border-left:3px solid ${low ? '#3fb950' : '#f85149'};">
-                    ${d.recommendation}
+
+                <!-- SHAP Explainability -->
+                <div style="margin-bottom:20px;">
+                    <span style="font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;font-weight:800;display:block;margin-bottom:12px;">AI Logic (Explainability)</span>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        ${d.explainability.map(exp => `
+                            <div style="display:flex;justify-content:space-between;align-items:center;background:#0d1117;padding:10px 14px;border-radius:10px;border-left:3px solid ${exp.impact === 'positive' ? '#3fb950' : '#f85149'};">
+                                <span style="font-size:12px;color:#c9d1d9;font-weight:600;">${exp.feature}</span>
+                                <span style="font-size:11px;color:${exp.impact === 'positive' ? '#3fb950' : '#f85149'};font-weight:800;">${exp.impact === 'positive' ? '↑ High Boost' : '↓ Reduction'}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Recommendation -->
+                <div style="margin-top:14px;font-size:13px;color:#c9d1d9;line-height:1.6;
+                    padding:16px;background:rgba(99,102,241,0.05);border-radius:16px;border:1px solid rgba(99,102,241,0.15);display:flex;gap:12px;">
+                    <span style="font-size:20px;">💡</span>
+                    <span>${d.recommendation}</span>
                 </div>
             </div>`;
     } catch (err) {
         containerEl.innerHTML = `
-            <div style="color:#f85149;font-size:14px;padding:14px;background:rgba(248,81,73,.08);
-                border:1px solid rgba(248,81,73,.25);border-radius:10px;">
-                ⚠️ ${err.message}
+            <div style="color:#f85149;font-size:14px;padding:20px;background:rgba(248,81,73,.08);
+                border:1px solid rgba(248,81,73,.25);border-radius:16px;display:flex;align-items:center;gap:12px;">
+                <span style="font-size:20px;">⚠️</span>
+                <div>
+                    <strong style="display:block;text-transform:uppercase;font-size:10px;letter-spacing:1px;margin-bottom:4px;">Prediction Error</strong>
+                    ${err.message}
+                </div>
             </div>`;
     }
 }

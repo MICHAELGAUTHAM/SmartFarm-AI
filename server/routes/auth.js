@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { addApiKey } from '../apiKeyStore.js';
 
 dotenv.config(); // Ensure variables are loaded before client creation
 
@@ -71,17 +73,20 @@ export default function() {
         // Supabase Cloud Flow
         if (supabase) {
             const email = username.includes('@') ? username : `${username}@smartfarm.local`;
+            const apiKey = crypto.randomBytes(16).toString('hex');
+            addApiKey(apiKey);
+
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
-                options: { data: { name } }
+                options: { data: { name, api_key: apiKey, plan: 'FREE' } }
             });
 
             if (error) return res.status(400).json({ error: error.message });
             return res.json({
                 success: true,
                 token: data.session?.access_token || 'verify_email_sent',
-                user: { id: data.user.id, username: username, name }
+                user: { id: data.user.id, username: username, name, api_key: apiKey, plan: 'FREE' }
             });
         }
 
@@ -91,11 +96,16 @@ export default function() {
             return res.status(409).json({ error: 'Username already exists' });
         }
 
+        const apiKey = crypto.randomBytes(16).toString('hex');
+        addApiKey(apiKey);
+
         const newUser = {
             id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
             username,
             password, 
-            name
+            name,
+            api_key: apiKey,
+            plan: 'FREE'
         };
         
         users.push(newUser);
@@ -105,7 +115,7 @@ export default function() {
         res.json({ 
             success: true, 
             token: mockToken, 
-            user: { id: newUser.id, username: newUser.username, name: newUser.name } 
+            user: { id: newUser.id, username: newUser.username, name: newUser.name, api_key: apiKey, plan: 'FREE' } 
         });
     });
 
@@ -116,6 +126,67 @@ export default function() {
         } else {
             res.status(401).json({ valid: false, error: 'Unauthorized' });
         }
+    });
+
+    router.post('/rotate-key', async (req, res) => {
+        const authHeader = req.headers['authorization'];
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'Missing token' });
+        }
+        const oldToken = authHeader.split(' ')[1];
+        
+        const { hashKey, logSecurityEvent } = await import('../apiKeyStore.js');
+        const oldHashedToken = hashKey(oldToken);
+        const newToken = crypto.randomBytes(16).toString('hex');
+        const newHashedToken = hashKey(newToken);
+        
+        if (supabase) {
+            const { data } = await supabase.from('api_keys').select('*').eq('hashed_key', oldHashedToken).single();
+            if (!data) {
+                logSecurityEvent('KEY_ROTATION_FAILED', req, { message: 'Attempted to rotate invalid key' });
+                return res.status(403).json({ error: 'Invalid API Key' });
+            }
+            
+            // Delete old key and insert new (handles PK cascade if setup, or bypasses UPDATE constraints)
+            await supabase.from('api_keys').delete().eq('hashed_key', oldHashedToken);
+            await supabase.from('api_keys').insert([{
+                hashed_key: newHashedToken,
+                plan: data.plan,
+                requests_today: data.requests_today,
+                last_reset_date: data.last_reset_date
+            }]);
+            
+            logSecurityEvent('KEY_ROTATED', req, { plan: data.plan });
+            return res.json({ success: true, new_api_key: newToken });
+        }
+        res.status(501).json({ error: 'Rotation requires database configuration' });
+    });
+
+    router.get('/me', async (req, res) => {
+        const authHeader = req.headers['authorization'];
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'Missing token' });
+        }
+        const token = authHeader.split(' ')[1];
+        
+        const { hashKey } = await import('../apiKeyStore.js');
+        const hashedToken = hashKey(token);
+        
+        if (supabase) {
+            const { data, error } = await supabase.from('api_keys').select('plan, requests_today, last_reset_date').eq('hashed_key', hashedToken).single();
+            if (error || !data) return res.status(404).json({ error: 'API Key not found' });
+            
+            // Fetch recent usage logs
+            const { data: logs } = await supabase.from('usage_logs').select('endpoint, created_at').eq('hashed_key', hashedToken).order('created_at', { ascending: false }).limit(10);
+            
+            return res.json({ 
+                plan: data.plan, 
+                requests_today: data.requests_today, 
+                last_reset_date: data.last_reset_date,
+                recent_logs: logs || []
+            });
+        }
+        res.status(501).json({ error: 'Database not configured' });
     });
 
     return router;
